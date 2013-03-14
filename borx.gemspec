@@ -14,7 +14,7 @@ DESCRIPTION
   gem.homepage = 'https://github.com/hannesg/borx'
 
   # ensure the gem is built out of versioned files
-  gem.files = Dir['{bin,lib,man,test,spec}/**/*'] & `git ls-files -z`.split("\0")
+  gem.files = Dir['lib/**/*'] & `git ls-files -z`.split("\0")
 
   gem.add_dependency "sorcerer", "~> 0.3.10"
 
