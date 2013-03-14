@@ -1,6 +1,9 @@
 Borx
 =====
 
+[![Build Status](https://travis-ci.org/hannesg/borx.png?branch=master)](https://travis-ci.org/hannesg/borx)
+[![Coverage Status](https://coveralls.io/repos/hannesg/borx/badge.png?branch=master)](https://coveralls.io/r/hannesg/borx)
+
 *DISCLAIMER: if you think this plugin is about rock-hard security, you are wrong*
 
 This plugin parses a piece of ruby code with ripper, rewrites it a bit and converts it back to ruby code.
