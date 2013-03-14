@@ -1,4 +1,8 @@
-require 'ripper'
+begin
+  require 'ripper'
+rescue NotFound
+  raise NotFound, "Ripper extension not found. Please add it to your bundle."
+end
 require 'sorcerer'
 require 'borx/code'
 class Borx::Rewriter < Ripper::SexpBuilder
@@ -13,14 +17,6 @@ class Borx::Rewriter < Ripper::SexpBuilder
   end
 
 private
-  def on_var_ref(*args)
-    ref = super
-    if ref[1][0] == :@const
-      return call_borx('get_constant',[:args_add, ARGS_NEW, ident_to_string(ref[1])])
-    else
-      return ref
-    end
-  end
 
   def on_top_const_ref(*args)
     ref = super
@@ -49,7 +45,9 @@ private
       inject_binding = false
       brgs = push_args(args[1][1], call[2][1][1])
     else
-      brgs = push_args(args[1][1],call[1],ident_to_string(call[3]))
+      # :nocov:
+      raise "Unknown call type #{call}. This is bug. Please report it"
+      # :nocov:
     end
     return call_borx('call_method', brgs, binding: inject_binding)
   end
@@ -76,6 +74,10 @@ private
             when :@ivar  then 'get_instance_variable'
             when :@ident then 'get_variable'
             when :@kw    then 'get_magic'
+            # :nocov:
+            else
+              raise "Unknown var_ref type in #{var[1]}, this is a bug, please report it"
+            # :nocov:
           end
     return call_borx(fun, [:args_add, [:args_new], ident_to_string(var[1])])
   end
@@ -89,6 +91,10 @@ private
               when :@cvar  then 'set_class_variable'
               when :@ivar  then 'set_instance_variable'
               when :@ident then 'set_variable'
+              # :nocov:
+              else
+                raise "Unknown var_field type in #{var[1]}, this is a bug, please report it"
+              # :nocov:
             end
       return call_borx(fun,
                         [:args_add,
@@ -119,7 +125,9 @@ private
                                   [:@const, 'Object',[0,0]]
                               ], value])
     end
-    return [assign, field, value]
+    # :nocov:
+    raise "Unknown assign type #{field}. This is a bug. Please report it"
+    # :nocov:
   end
 
   def on_xstring_literal(x)
@@ -135,13 +143,15 @@ private
 
   def xstring_to_string(x)
     if x[0] == :xstring_literal
-      return [:string_literal, *x[1..-1]]
+      return [:string_literal, xstring_to_string(x[1]), *x[2..-1]]
     elsif x[0] == :xstring_add
-      return [:string_add, *x[1..-1]]
+      return [:string_add, xstring_to_string(x[1]), *x[2..-1]]
     elsif x[0] == :xstring_new
-      return [:string_new]
+      return [:string_content]
     else
-      return x
+      # :nocov:
+      raise "Unknown xstring type #{x}. This is a bug. Please report it."
+      # :nocov:
     end
   end
 
@@ -159,7 +169,6 @@ private
   end
 
   def binding_args
-    #[:vcall,[:@ident, 'binding',[0,0]]]
     return [:var_field, [:@ident, "__borx_binding__", [1, 0]]]
   end
 

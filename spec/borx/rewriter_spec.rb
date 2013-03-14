@@ -45,12 +45,20 @@ describe Borx::Rewriter do
     expect( rewrite("x.y{|a|a}") ).to eql Borx::Code.new(borx_head + '__borx__.call_method(__borx_binding__, __borx__.get_variable(__borx_binding__, "x"), "y") { |a| '+borx_head+'__borx__.get_variable(__borx_binding__, "a") }')
   end
 
+  it "redirects method private calls with args" do
+    expect( rewrite("x(1)") ).to eql Borx::Code.new(borx_head + '__borx__.call_private_method(__borx_binding__, self, "x", 1)')
+  end
+
   it "redirects method private calls with blocks" do
     expect( rewrite("y{|a|a}") ).to eql Borx::Code.new(borx_head + '__borx__.call_private_method(__borx_binding__, self, "y") { |a| '+borx_head+'__borx__.get_variable(__borx_binding__, "a") }')
   end
 
   it "redirects variable sets" do
     expect( rewrite("x=1") ).to eql Borx::Code.new(borx_head + '__borx__.set_variable(__borx_binding__, "x", 1)')
+  end
+
+  it "redirects variable gets" do
+    expect( rewrite("x=1; x") ).to eql Borx::Code.new(borx_head + '__borx__.set_variable(__borx_binding__, "x", 1); __borx__.get_variable(__borx_binding__, "x")')
   end
 
   it "redirects __FILE__" do

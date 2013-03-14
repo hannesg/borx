@@ -23,3 +23,17 @@ CODE
   end
 
 end
+
+describe Borx::Code do
+
+  it "works in a hash" do
+    h = {}
+    h[ Borx::Code.new('xy') ] = 1
+    expect( h[ Borx::Code.new('xy') ] ).to eql 1
+  end
+
+  it "has a readable inspect" do
+    expect( Borx::Code.new('xy').inspect ).to eql '#<Borx::Code "xy">'
+  end
+
+end
