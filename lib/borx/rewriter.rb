@@ -127,6 +127,12 @@ private
     return call_borx('execute', [:args_add, [:args_new], xstring_to_string(x)])
   end
 
+  def on_stmts_new
+    return [:stmts_add, [:stmts_new], [:assign,
+            [:var_field, [:@ident, "__borx_binding__", [1, 0]]],
+              [:vcall, [:@ident, "binding", [1, 17]]]]]
+  end
+
   def xstring_to_string(x)
     if x[0] == :xstring_literal
       return [:string_literal, *x[1..-1]]
@@ -140,7 +146,7 @@ private
   end
 
   def call_borx(name,args, options = {})
-    args = push_args(args, [:vcall,[:@ident, 'binding',[0,0]]] ) unless options[:binding] == false
+    args = push_args(args, binding_args) unless options[:binding] == false
     return [:method_add_arg,
       [:call, [:var_ref, [:@ident, "__borx__", [0, 0]]], :'.', [:@ident, name, [0,0]]],
       [:arg_paren,
@@ -150,6 +156,11 @@ private
         ]
       ]
     ]
+  end
+
+  def binding_args
+    #[:vcall,[:@ident, 'binding',[0,0]]]
+    return [:var_field, [:@ident, "__borx_binding__", [1, 0]]]
   end
 
   def ident_to_string(ident)

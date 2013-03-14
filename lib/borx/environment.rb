@@ -91,7 +91,8 @@ class Borx::Environment < base
     end
   end
 
-  def eval(code, bin_ding = binding)
+  def eval(code, bin_ding = nil)
+    bin_ding ||= proc{}.binding
     eval_code( Borx::Rewriter.rewrite(code), bin_ding)
   end
 
