@@ -134,11 +134,80 @@ private
     x = super
     return call_borx('execute', [:args_add, [:args_new], xstring_to_string(x)])
   end
-
+=begin
   def on_stmts_new
+    return [:stmts_add,
+        [:stmts_new],
+        [:assign,
+           [:var_field, [:@ident, "__borx_binding__", [1, 0]]],
+                  [:call,
+                        [:var_ref, [:@ident, "__borx_binding__", [1, 19]]],
+                            :".",
+                                [:@ident, "child", [1, 36]]]]]
     return [:stmts_add, [:stmts_new], [:assign,
             [:var_field, [:@ident, "__borx_binding__", [1, 0]]],
-              [:vcall, [:@ident, "binding", [1, 17]]]]]
+              [[:vcall, [:@ident, "binding", [1, 17]]]]]]
+  end
+=end
+=begin
+  def on_brace_block(block_var, stmts)
+    name, block_var, stmts = super
+    return [name, block_var, [:stmts_add,
+  [:stmts_new],
+  [:method_add_arg,
+   [:call,
+    [:method_add_block,
+     [:method_add_arg, [:fcall, [:@ident, "proc", [1, 0]]], [:args_new]],
+     [:brace_block,
+      [:block_var,
+       [:params,
+        [[:@ident, "__borx_binding__", [1, 6]]],
+        nil,
+        nil,
+        nil,
+        nil,
+        nil,
+        nil],
+       false],
+      stmts]],
+    :".",
+    [:@ident, "call", [1, 28]]],
+   [:arg_paren,
+    [:args_add_block,
+     [:args_add,
+      [:args_new],
+      [:call,
+       [:vcall, [:@ident, "__borx_binding__", [1, 33]]],
+       :".",
+       [:@ident, "child", [1, 50]]]],
+     false]]]]]
+  end
+=end
+  
+  def on_method_add_block(args, block)
+    name, args, block = super
+    pp args, block
+    new_vars = [:args_new]
+    if block[1]
+      
+    end
+    new_block = [:method_add_block,
+     [:method_add_arg,
+      [:call,
+       [:var_ref, [:@ident, "__borx_binding__", [0, 0]]],
+       :".",
+       [:@ident, "block", [0, 0]]],
+      [:arg_paren,
+       [:args_add_block,
+        new_vars,
+        false]]],
+     [:brace_block,
+      [:block_var,
+        [:params, [[:@ident, "__borx_binding__", [1, 20]]], nil, nil, nil, nil, nil, nil],
+        false],
+      block[2]]
+    ]
+    return [name, args, new_block]
   end
 
   def xstring_to_string(x)

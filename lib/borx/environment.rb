@@ -1,3 +1,5 @@
+require 'borx/binding'
+
 base = Class.new do
 
   def get_constant(binding, name, house = nil)
@@ -29,7 +31,7 @@ class Borx::Environment < base
   module GetVariable
 
     def get_variable(binding, name)
-      binding.eval(name)
+      binding.get_variable(name)
     end
 
   end
@@ -37,7 +39,7 @@ class Borx::Environment < base
   module SetVariable
 
     def set_variable(binding, name, value)
-      binding.eval("#{name} = nil ; lambda{|_x| #{name} = _x}").call(value)
+      binding.set_variable(name,value)
     end
 
   end
@@ -98,7 +100,7 @@ class Borx::Environment < base
 
 private
   def eval_code(code, binding, file = '(eval)', line = 0)
-    old_borx, setter = binding.eval('__borx__ ||= nil ; [__borx__, lambda{|v| __borx__ = v}]')
+    old_borx, setter = binding.eval('__borx__ ||= nil ; __borx_binding__ = Borx::Binding::Adapter.new(binding) ; [__borx__, lambda{|v| __borx__ = v}]')
     setter.call(self)
     binding.eval(code.code, file, line)
   ensure
