@@ -22,6 +22,35 @@ CODE
     expect(result).to eql [2,4,6]
   end
 
+  it "can call outside methods" do
+    def foo(x)
+      return x * 2
+    end
+
+    env = Borx::Environment.new
+    result = env.eval <<'CODE', binding
+foo "bar"
+CODE
+
+    expect(result).to eql "barbar"
+
+  end
+
+  it "can call outside methods in blocks" do
+    def foo(x)
+      return x * 2
+    end
+
+    env = Borx::Environment.new
+    result = env.eval <<'CODE', binding
+["bar"].map do |bar|
+  foo bar
+end
+CODE
+
+    expect(result).to eql ["barbar"]
+  end
+
 end
 
 describe Borx::Code do

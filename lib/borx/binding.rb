@@ -31,10 +31,6 @@ class Borx::Binding
     @variables[name] = value
   end
 
-  def child
-    Borx::Binding.new(self)
-  end
-
   def block(*args, &block)
     Block.new(self, args, block)
   end
@@ -74,7 +70,7 @@ class Borx::Binding
     end
 
     def variable?(name)
-      return @binding.eval("defined? #{name}")
+      return @binding.eval("local_variables.any?{|v| v.to_s == #{name.inspect}}")
     end
 
   end

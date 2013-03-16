@@ -49,8 +49,12 @@ describe Borx::Rewriter do
     expect( rewrite("x(1)") ).to eql Borx::Code.new('__borx__.call_private_method(__borx_binding__, self, "x", 1)')
   end
 
-  it "redirects method private calls with blocks", focus: true do
+  it "redirects method private calls with blocks" do
     expect( rewrite("y{|a|a}") ).to eql Borx::Code.new('__borx__.call_private_method(__borx_binding__, self, "y", &__borx_binding__.block("a") { |__borx_binding__| __borx__.get_variable(__borx_binding__, "a") })')
+  end
+
+  it "redirects method calls with added blocks" do
+    expect( rewrite("y(&a)") ).to eql Borx::Code.new('__borx__.call_private_method(__borx_binding__, self, "y", &__borx_binding__.block(&__borx__.get_variable(__borx_binding__, "a")))')
   end
 
   it "redirects variable sets" do

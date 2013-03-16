@@ -1,7 +1,9 @@
 begin
   require 'ripper'
 rescue NotFound
+  # :nocov:
   raise NotFound, "Ripper extension not found. Please add it to your bundle."
+  # :nocov:
 end
 require 'sorcerer'
 require 'borx/code'
@@ -33,10 +35,10 @@ private
   end
 
   def on_method_add_arg(*x)
-    name, call, args, block = super
+    name, call, args = super
     inject_binding = true
     if call[0] ==  :fcall
-      args = args[1][1] unless args == ARGS_NEW
+      args = args[1] unless args == ARGS_NEW
       brgs = push_args(args,[:var_ref, [:@kw, "self", [0, 0]]],ident_to_string(call[1]))
       return call_borx('call_private_method', brgs)
     elsif call[0] == :method_add_arg
@@ -164,15 +166,37 @@ private
     return put_args_add_block(args,new_block)
   end
 
-  def put_args_add_block(args, block)
-    if args[0] == :args_add_block
-      return [:args_add_block, args[1], block]
-    elsif args[0] == :method_add_arg
-      return [:method_add_arg, args[1], put_args_add_block(args[2],block)]
-    elsif args[0] == :arg_paren
-      return [:arg_paren, put_args_add_block(args[1],block)]
+  def on_args_add_block(args, block)
+    name, args, block = super
+    new_block = false
+    if block
+     #   new_block = 
+      new_block = [:method_add_arg,
+      [:call,
+       [:var_ref, [:@ident, "__borx_binding__", [0, 0]]],
+       :".",
+       [:@ident, "block", [0, 0]]],
+      [:arg_paren,
+       [:args_add_block,
+        [:args_new],
+        block]]]
     end
-    raise "boom"
+    return [name, args, new_block]
+  end
+
+  def put_args_add_block(args, block)
+    case(args[0])
+    when :args_add_block
+      return [:args_add_block, args[1], block]
+    when :method_add_arg
+      return [:method_add_arg, args[1], put_args_add_block(args[2],block)]
+    when :arg_paren
+      return [:arg_paren, put_args_add_block(args[1],block)]
+    else
+      # :nocov:
+      raise "Unknown args type #{args[0]}. This is a bug. Please report it"
+      # :nocov:
+    end
   end
 
   def xstring_to_string(x)
@@ -213,14 +237,19 @@ private
   end
 
   def push_args(tree, *args)
-    if tree == [:args_new]
+    case(tree[0])
+    when :args_new then
       if args.any?
         return [:args_add, push_args(tree, *args[0..-2]), args.last]
       else 
         return tree
       end
+    when :args_add_block, :args_add
+      return [tree[0], push_args(tree[1],*args), tree[2]]
     else
-      return [:args_add, push_args(tree[1], *args), tree[2]]
+      # :nocov:
+      raise "Unknown args type #{tree[0]}. This is a bug. Please report it."
+      # :nocov:
     end
   end
 
