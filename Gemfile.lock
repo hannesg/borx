@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    borx (0.0.1.alpha2)
+    borx (0.0.1.beta1)
       sorcerer (~> 0.3.10)
 
 GEM

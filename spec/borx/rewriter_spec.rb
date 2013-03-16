@@ -66,7 +66,7 @@ describe Borx::Rewriter do
   end
 
   it "redirects __FILE__" do
-    expect( rewrite("__FILE__") ).to eql Borx::Code.new('__borx__.get_magic(__borx_binding__, "__FILE__")')
+    expect( rewrite("__FILE__") ).to eql Borx::Code.new('__borx__.get_magic(__borx_binding__, "__FILE__", __FILE__)')
   end
 
   it "redirects xstrings" do

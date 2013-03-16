@@ -33,6 +33,18 @@ describe Borx::Binding do
     expect(bind.get_variable("a")).to eql 3
   end
 
+  it "can evaluate code" do
+    parent = double("parent binding")
+    bind = Borx::Binding.new(parent)
+    expect(bind.eval("1 + 2")).to eql 3
+  end
+
+  it "supports binding wrapping" do
+    parent = double("parent binding")
+    bind = Borx::Binding.new(parent)
+    expect(bind.eval("Borx::Binding(binding)")).to eql bind
+  end
+
   describe Borx::Binding::Adapter do
 
     def adapt(binding)
@@ -41,8 +53,8 @@ describe Borx::Binding do
 
     it "correctly detects variables" do
       a = 1
-      expect( adapt(proc{}.binding).variable? "a" ).to eql true
-      expect( adapt(proc{}.binding).variable? "b" ).to eql false
+      expect( adapt(binding).variable? "a" ).to eql true
+      expect( adapt(binding).variable? "b" ).to eql false
     end
 
     it "correctly get variables" do

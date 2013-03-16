@@ -31,6 +31,20 @@ class Borx::Binding
     @variables[name] = value
   end
 
+  alias actual_binding binding
+
+  def cached_actual_binding
+    @actual_binding ||= actual_binding
+  end
+
+  def binding
+    return self
+  end
+
+  def eval(code, *args)
+    Kernel::eval(code, cached_actual_binding, *args)
+  end
+
   def block(*args, &block)
     Block.new(self, args, block)
   end
@@ -54,6 +68,28 @@ class Borx::Binding
 
   end
 
+  class Terminal < self
+
+    def initialize
+      @variables = {}
+    end
+
+    def get_variable(name)
+      return @variables[name]
+    end
+
+    def set_variable(name, value)
+      return @variables[name] = value
+    end
+
+    def variable?(name)
+      return @variables.key?(name)
+    end
+
+    alias set_variable! set_variable
+
+  end
+
   class Adapter < self
 
     def initialize(real_binding)
@@ -71,6 +107,10 @@ class Borx::Binding
 
     def variable?(name)
       return @binding.eval("local_variables.any?{|v| v.to_s == #{name.inspect}}")
+    end
+
+    def eval(*args)
+      @binding.eval(*args)
     end
 
   end

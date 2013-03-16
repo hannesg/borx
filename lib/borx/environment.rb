@@ -22,6 +22,58 @@ base = Class.new do
     raise Borx::Environment::NotImplemented::SetVariable
   end
 
+  def get_magic(binding, name, actual)
+    raise Borx::Environment::NotImplemented::GetMagic
+  end
+
+  # @!method eval(code, binding = nil, file = 'borx', line = 0)
+  #   @param [String, Borx::Code] code
+  #   @param [Binding, Borx::Binding, nil] binding
+  #   @param [String] file
+  #   @param [Numeric] line
+  #
+  # @!method eval(code, options = {})
+  #   @param [String, Borx::Code] code
+  #   @param [Hash] options
+  #   @option options [Binding, Borx::Binding] :binding
+  #   @option options [Object] :self main object, only used when no binding is given
+  #   @option options [String] :file
+  #   @option options [Numeric] :line
+  #   
+  def eval(code, opts_or_binding = nil, file = 'borx', line = 0)
+    bindink = opts_or_binding
+    case(opts_or_binding)
+    when nil then
+      bindink = proc{}.binding
+    when Hash then
+      opts = opts_or_binding
+      if opts[:binding]
+        bindink = opts[:binding]
+      elsif opts[:self]
+        bindink = opts[:self].instance_eval{ binding }
+      else
+        bindink = proc{}.binding
+      end
+      file = opts[:file] || 'borx'
+      line = opts[:line] || 0
+    when Borx::Binding, ::Binding then
+      bindink = opts_or_binding
+    else
+      raise ArgumentException, "Expected a Hash or a Binding, got #{opts_or_binding.inspect}"
+    end
+    eval_code( Borx::Rewriter.rewrite(code), bindink, file, line)
+  end
+
+private
+
+  def eval_code(code, binding, file, line)
+    old_borx, setter = binding.eval('__borx__ ||= nil ; __borx_binding__ = Borx::Binding(binding) ; [__borx__, lambda{|v| __borx__ = v}]')
+    setter.call(self)
+    binding.eval(code.code, file, line)
+  ensure
+    setter.call(old_borx) if setter
+  end
+
 end
 
 class Borx::Environment < base
@@ -76,9 +128,16 @@ class Borx::Environment < base
     include GetConstant
   end
 
+  module GetMagic
+    def get_magic(_binding, _name, actual)
+      return actual
+    end
+  end
+
   include GetSetVariable
   include GetSetConstant
   include CallMethod
+  include GetMagic
 
   class NotImplemented < StandardError
     class GetConstant < self
@@ -91,20 +150,8 @@ class Borx::Environment < base
     end
     class SetVariable < self
     end
-  end
-
-  def eval(code, bin_ding = nil)
-    bin_ding ||= proc{}.binding
-    eval_code( Borx::Rewriter.rewrite(code), bin_ding)
-  end
-
-private
-  def eval_code(code, binding, file = '(eval)', line = 0)
-    old_borx, setter = binding.eval('__borx__ ||= nil ; __borx_binding__ = Borx::Binding::Adapter.new(binding) ; [__borx__, lambda{|v| __borx__ = v}]')
-    setter.call(self)
-    binding.eval(code.code, file, line)
-  ensure
-    setter.call(old_borx) if setter
+    class GetMagic < self
+    end
   end
 
 end

@@ -69,13 +69,18 @@ private
 
   def on_var_ref(x)
     var = super
+    if var[1][0] == :@kw
+      return call_borx('get_magic', [:args_add,
+                       [:args_add, [:args_new], ident_to_string(var[1])],
+                         var
+                      ])
+    end
     fun = case(var[1][0])
             when :@const then 'get_constant'
             when :@gvar  then 'get_global_variable'
             when :@cvar  then 'get_class_variable'
             when :@ivar  then 'get_instance_variable'
             when :@ident then 'get_variable'
-            when :@kw    then 'get_magic'
             # :nocov:
             else
               raise "Unknown var_ref type in #{var[1]}, this is a bug, please report it"
