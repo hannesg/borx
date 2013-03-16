@@ -51,6 +51,18 @@ CODE
     expect(result).to eql ["barbar"]
   end
 
+  it "works as advertised" do
+    env = Borx::Environment.new
+    def env.call_method(binding, receiver, method, *args, &block)
+      if method == "+"
+        super(binding, receiver, "-", *args, &block)
+      else
+        super
+      end
+    end
+    expect( env.eval("1 + 1") ).to eql 0
+  end
+
 end
 
 describe Borx::Code do

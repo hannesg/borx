@@ -22,7 +22,7 @@ Gets tricky:
     env = Borx::Environment.new
     def env.call_method(binding, receiver, method, *args, &block)
       if method == "+"
-        super(receiver, "-", *args, &block)
+        super(binding, receiver, "-", *args, &block)
       else
         super
       end

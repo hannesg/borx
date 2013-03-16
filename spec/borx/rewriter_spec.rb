@@ -72,4 +72,8 @@ describe Borx::Rewriter do
   it "redirects xstrings" do
     expect( rewrite('`x`') ).to eql Borx::Code.new('__borx__.execute(__borx_binding__, "x")')
   end
+
+  it "redirects operators" do
+    expect( rewrite('1+1') ).to eql Borx::Code.new('__borx__.call_method(__borx_binding__, 1, "+", 1)')
+  end
 end

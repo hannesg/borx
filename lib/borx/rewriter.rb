@@ -137,6 +137,18 @@ private
     return call_borx('execute', [:args_add, [:args_new], xstring_to_string(x)])
   end
 
+  def on_binary(left, op, right)
+    return call_borx('call_method', [:args_add,
+                                      [:args_add,
+                                        [:args_add,
+                                          [:args_new],
+                                          left],
+                                          [:string_literal,
+      [:string_add,[:string_content],
+        [:@tstring_content, op.to_s, [0,0]]]]],
+                                          right])
+  end
+
   def on_method_add_block(args, block)
     name, args, block = super
     new_vars = [:args_new]
