@@ -137,7 +137,6 @@ private
 
   def on_method_add_block(args, block)
     name, args, block = super
-    pp args, block
     new_vars = [:args_new]
     if block[1]
       block[1][1][1].each do |arg|

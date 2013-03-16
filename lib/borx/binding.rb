@@ -27,8 +27,35 @@ class Borx::Binding
     return @variables.key?(name) || @parent.variable?(name)
   end
 
+  def set_variable!(name, value)
+    @variables[name] = value
+  end
+
   def child
     Borx::Binding.new(self)
+  end
+
+  def block(*args, &block)
+    Block.new(self, args, block)
+  end
+
+  class Block
+    def initialize(parent, names, block)
+      @parent = parent
+      @block = block
+      @names = names
+    end
+
+    def to_proc
+      return method(:call).to_proc
+    end
+
+    def call(*args, &block)
+      b = Borx::Binding.new(@parent)
+      @names.zip(args){|name, value| b.set_variable!(name, value) }
+      @block.call(b)
+    end
+
   end
 
   class Adapter < self
