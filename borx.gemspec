@@ -1,6 +1,6 @@
 Gem::Specification.new do |gem|
   gem.name    = 'borx'
-  gem.version = '0.0.1.alpha2'
+  gem.version = '0.0.1.beta1'
   gem.date    = Time.now.strftime("%Y-%m-%d")
 
   gem.summary = "rewrites ruby code so you can decide what it actually does"
