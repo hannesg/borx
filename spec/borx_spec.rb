@@ -87,6 +87,17 @@ CODE
     expect(env.eval("a = 1; b = 2; a + b")).to eql 3
   end
 
+  it "handles self correctly when passed a self object" do
+    object = Object.new
+    env = Borx::Environment.new
+    expect(env.eval("self", :self => object )).to eql object
+  end
+
+  it "handles self correctly when passed a binding" do
+    env = Borx::Environment.new
+    expect(env.eval("self", :binding => binding )).to eql self
+  end
+
   describe "::Binding" do
 
     it "returns a terminal binding without args" do
