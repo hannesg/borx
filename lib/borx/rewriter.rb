@@ -134,62 +134,16 @@ private
     x = super
     return call_borx('execute', [:args_add, [:args_new], xstring_to_string(x)])
   end
-=begin
-  def on_stmts_new
-    return [:stmts_add,
-        [:stmts_new],
-        [:assign,
-           [:var_field, [:@ident, "__borx_binding__", [1, 0]]],
-                  [:call,
-                        [:var_ref, [:@ident, "__borx_binding__", [1, 19]]],
-                            :".",
-                                [:@ident, "child", [1, 36]]]]]
-    return [:stmts_add, [:stmts_new], [:assign,
-            [:var_field, [:@ident, "__borx_binding__", [1, 0]]],
-              [[:vcall, [:@ident, "binding", [1, 17]]]]]]
-  end
-=end
-=begin
-  def on_brace_block(block_var, stmts)
-    name, block_var, stmts = super
-    return [name, block_var, [:stmts_add,
-  [:stmts_new],
-  [:method_add_arg,
-   [:call,
-    [:method_add_block,
-     [:method_add_arg, [:fcall, [:@ident, "proc", [1, 0]]], [:args_new]],
-     [:brace_block,
-      [:block_var,
-       [:params,
-        [[:@ident, "__borx_binding__", [1, 6]]],
-        nil,
-        nil,
-        nil,
-        nil,
-        nil,
-        nil],
-       false],
-      stmts]],
-    :".",
-    [:@ident, "call", [1, 28]]],
-   [:arg_paren,
-    [:args_add_block,
-     [:args_add,
-      [:args_new],
-      [:call,
-       [:vcall, [:@ident, "__borx_binding__", [1, 33]]],
-       :".",
-       [:@ident, "child", [1, 50]]]],
-     false]]]]]
-  end
-=end
-  
+
   def on_method_add_block(args, block)
     name, args, block = super
     pp args, block
     new_vars = [:args_new]
     if block[1]
-      
+      block[1][1][1].each do |arg|
+        next unless arg
+        new_vars = [:args_add, new_vars, ident_to_string(arg)]
+      end
     end
     new_block = [:method_add_block,
      [:method_add_arg,
@@ -207,7 +161,19 @@ private
         false],
       block[2]]
     ]
-    return [name, args, new_block]
+
+    return put_args_add_block(args,new_block)
+  end
+
+  def put_args_add_block(args, block)
+    if args[0] == :args_add_block
+      return [:args_add_block, args[1], block]
+    elsif args[0] == :method_add_arg
+      return [:method_add_arg, args[1], put_args_add_block(args[2],block)]
+    elsif args[0] == :arg_paren
+      return [:arg_paren, put_args_add_block(args[1],block)]
+    end
+    raise "boom"
   end
 
   def xstring_to_string(x)
