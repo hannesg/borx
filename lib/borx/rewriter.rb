@@ -1,10 +1,4 @@
-begin
-  require 'ripper'
-rescue NotFound
-  # :nocov:
-  raise NotFound, "Ripper extension not found. Please add it to your bundle."
-  # :nocov:
-end
+require 'ripper'
 require 'sorcerer'
 require 'borx/code'
 class Borx::Rewriter < Ripper::SexpBuilder
